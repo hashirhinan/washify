@@ -1,1 +1,10 @@
-{"/_app":"pages/_app.js","/_error":"pages/_error.js","/api/appointments":"pages/api/appointments.js","/api/customers":"pages/api/customers.js","/api/washers":"pages/api/washers.js","/":"pages/index.html","/scheduler":"pages/scheduler.html","/_document":"pages/_document.js","/404":"pages/404.html"}
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
+  "/": "pages/index.js",
+  "/scheduler": "pages/scheduler.js",
+  "/api/customers": "pages/api/customers.js",
+  "/api/appointments": "pages/api/appointments.js",
+  "/api/washers": "pages/api/washers.js"
+}

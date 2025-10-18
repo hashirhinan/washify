@@ -157,4 +157,3 @@ export default function SchedulerPage() {
       </div>
     </div>
   )
-}
