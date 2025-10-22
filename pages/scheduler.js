@@ -1,128 +1,205 @@
-﻿import React, { useState, useEffect } from 'react'
+﻿'use client'; // Add this if using Next.js 13+ app directory
 
-export default function SchedulerPage() {
-  const [customers, setCustomers] = useState([])
-  const [washers, setWashers] = useState([])
-  const [appointments, setAppointments] = useState([])
-  const [loading, setLoading] = useState(true)
+import { useState, useEffect } from 'react';
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+export default function Scheduler() {
+  // Step 1.1: Create state to store data from database
+  const [data, setData] = useState({
+    customers: [],
+    washers: [],
+    appointments: []
+  });
+  
+  // Step 1.2: Create loading state
+  const [loading, setLoading] = useState(true);
+  
+  // Step 1.3: Create error state
+  const [error, setError] = useState(null);
 
-  async function fetchData() {
-    setLoading(true)
+  // Step 1.4: Function to load data from API
+  const loadData = async () => {
     try {
-      const [cRes, wRes, aRes] = await Promise.all([
-        fetch('/api/customers'),
-        fetch('/api/washers'),
-        fetch('/api/appointments')
-      ])
-      const cData = await cRes.json()
-      const wData = await wRes.json()
-      const aData = await aRes.json()
-      if (cData.success) setCustomers(cData.data)
-      if (wData.success) setWashers(wData.data)
-      if (aData.success) setAppointments(aData.data)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function addSampleData() {
-    try {
-      await Promise.all([
-        fetch('/api/customers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: 'Rajesh Kumar',
-            mobile: '9876543210',
-            address: 'Brigade Harmony, Sahakarnagar',
-            subscriptionType: 'weekly',
-            subscriptionStart: new Date()
-          })
-        }),
-        fetch('/api/washers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: 'Suresh Washer',
-            mobile: '8765432109',
-            assignedArea: 'Sahakarnagar North',
-            isAvailable: true
-          })
-        })
-      ])
-      fetchData()
-      alert('Sample data added!')
-    } catch (err) {
-      console.error(err)
-      alert('Failed to add sample data')
-    }
-  }
-
-  if (loading) {
-    return <div style={{ padding: 20, fontFamily:'Arial' }}>Loading...</div>
-  }
-
-  return (
-    <div style={{ fontFamily: 'Arial', padding: 20, backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <h1 style={{ color: '#2563eb', marginBottom: 30 }}>🚗 Washify Dashboard</h1>
+      setLoading(true);
       
-      {customers.length === 0 && (
-        <div style={{ margin: '20px 0', backgroundColor: '#fef3c7', padding: 20, borderRadius: 8, border: '1px solid #f59e0b' }}>
-          <p><strong>🎯 Add Sample Data</strong></p>
-          <button
-            onClick={addSampleData}
-            style={{
-              backgroundColor: '#f59e0b',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontSize: 16,
-              fontWeight: 'bold'
-            }}
-          >
-            Add Data
-          </button>
+      // Fetch data from our API endpoint
+      const response = await fetch('/api/dashboard');
+      
+      // Check if request was successful
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      
+      // Parse JSON response
+      const json = await response.json();
+      
+      // Update state with fetched data
+      setData(json);
+      setError(null);
+      
+    } catch (err) {
+      // If error occurs, store error message
+      setError(err.message);
+      console.error('Error loading data:', err);
+    } finally {
+      // Always set loading to false when done
+      setLoading(false);
+    }
+  };
+
+  // Step 1.5: Load data when page first loads
+  useEffect(() => {
+    loadData(); // This runs once when component mounts
+  }, []); // Empty array = run only once
+
+  // Step 1.6: Function to add sample data
+  const handleAddSampleData = async () => {
+    try {
+      // Call API to insert sample data
+      const response = await fetch('/api/sample', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Check if request was successful
+      if (!response.ok) {
+        throw new Error('Failed to add sample data');
+      }
+      
+      // Show success message
+      alert('Sample data added!');
+      
+      // Reload data to show updated counts
+      await loadData();
+      
+    } catch (err) {
+      // Show error if something went wrong
+      alert('Error adding data: ' + err.message);
+      console.error('Error adding sample data:', err);
+    }
+  };
+
+  // Step 1.7: Render the page
+  return (
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
+        <span style={{ fontSize: '40px', marginRight: '10px' }}>🚗</span>
+        <h1 style={{ margin: 0, color: '#2196F3' }}>Washify Dashboard</h1>
+      </div>
+
+      {/* Add Sample Data Section */}
+      <div style={{ 
+        backgroundColor: '#fff3cd', 
+        padding: '20px', 
+        margin: '20px 0',
+        borderRadius: '8px',
+        border: '2px solid #ffc107'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+          <span style={{ fontSize: '24px', marginRight: '10px' }}>🔧</span>
+          <h3 style={{ margin: 0 }}>Add Sample Data</h3>
         </div>
+        <button 
+          onClick={handleAddSampleData}
+          style={{
+            backgroundColor: '#ff9800',
+            color: 'white',
+            padding: '12px 24px',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}
+          onMouseOver={(e) => e.target.style.backgroundColor = '#f57c00'}
+          onMouseOut={(e) => e.target.style.backgroundColor = '#ff9800'}
+        >
+          Add Data
+        </button>
+      </div>
+
+      {/* Show loading spinner while fetching data */}
+      {loading && (
+        <p style={{ fontSize: '18px', color: '#666' }}>⏳ Loading data...</p>
       )}
 
-      <div style={{ display: 'grid', gap: 30, gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-        <section>
-          <h2 style={{ color: '#059669' }}>👥 Customers ({customers.length})</h2>
-          {customers.map(c => (
-            <div key={c._id} style={{ backgroundColor: '#f0fdf4', padding: 15, borderRadius: 8, marginBottom: 10, border: '1px solid #10b981' }}>
-              <strong>{c.name}</strong> — {c.mobile}<br/>
-              <small>{c.address}</small>
-            </div>
-          ))}
-        </section>
+      {/* Show error message if something went wrong */}
+      {error && (
+        <p style={{ 
+          color: 'white', 
+          backgroundColor: '#f44336', 
+          padding: '15px',
+          borderRadius: '5px'
+        }}>
+          ❌ Error: {error}
+        </p>
+      )}
 
-        <section>
-          <h2 style={{ color: '#2563eb' }}>🧽 Washers ({washers.length})</h2>
-          {washers.map(w => (
-            <div key={w._id} style={{ backgroundColor: '#eff6ff', padding: 15, borderRadius: 8, marginBottom: 10, border: '1px solid #3b82f6' }}>
-              <strong>{w.name}</strong> — {w.mobile}<br/>
-              <small>{w.assignedArea}</small>
-            </div>
-          ))}
-        </section>
+      {/* Dashboard Stats - only show when not loading and no errors */}
+      {!loading && !error && (
+        <div style={{ 
+          display: 'flex', 
+          gap: '20px', 
+          marginTop: '30px',
+          flexWrap: 'wrap'
+        }}>
+          
+          {/* Customers Card */}
+          <div style={{
+            border: '3px solid #4CAF50',
+            padding: '30px',
+            borderRadius: '10px',
+            flex: '1',
+            minWidth: '250px',
+            backgroundColor: '#f1f8f4',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>👥</div>
+            <h2 style={{ margin: '10px 0', color: '#4CAF50' }}>Customers</h2>
+            <p style={{ fontSize: '36px', fontWeight: 'bold', margin: '10px 0', color: '#333' }}>
+              {data.customers.length}
+            </p>
+          </div>
 
-        <section>
-          <h2 style={{ color: '#f59e0b' }}>📅 Appointments ({appointments.length})</h2>
-          {appointments.map(a => (
-            <div key={a._id} style={{ backgroundColor: '#fffbeb', padding: 15, borderRadius: 8, marginBottom: 10, border: '1px solid #f59e0b' }}>
-              Status: {a.status}
-            </div>
-          ))}
-        </section>
-      </div>
+          {/* Washers Card */}
+          <div style={{
+            border: '3px solid #2196F3',
+            padding: '30px',
+            borderRadius: '10px',
+            flex: '1',
+            minWidth: '250px',
+            backgroundColor: '#f1f7fc',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>🧽</div>
+            <h2 style={{ margin: '10px 0', color: '#2196F3' }}>Washers</h2>
+            <p style={{ fontSize: '36px', fontWeight: 'bold', margin: '10px 0', color: '#333' }}>
+              {data.washers.length}
+            </p>
+          </div>
+
+          {/* Appointments Card */}
+          <div style={{
+            border: '3px solid #FF9800',
+            padding: '30px',
+            borderRadius: '10px',
+            flex: '1',
+            minWidth: '250px',
+            backgroundColor: '#fff8f1',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '10px' }}>📅</div>
+            <h2 style={{ margin: '10px 0', color: '#FF9800' }}>Appointments</h2>
+            <p style={{ fontSize: '36px', fontWeight: 'bold', margin: '10px 0', color: '#333' }}>
+              {data.appointments.length}
+            </p>
+          </div>
+          
+        </div>
+      )}
     </div>
-  )
+  );
 }

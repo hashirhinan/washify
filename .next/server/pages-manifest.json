@@ -3,8 +3,5 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/scheduler": "pages/scheduler.js",
-  "/api/customers": "pages/api/customers.js",
-  "/api/appointments": "pages/api/appointments.js",
-  "/api/washers": "pages/api/washers.js"
+  "/api/customers": "pages/api/customers.js"
 }

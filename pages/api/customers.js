@@ -1,35 +1,22 @@
-// pages/api/customers.js
-import dbConnect from '../../src/mongodb';
-import Customer from '../../src/models/Customer';
+import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
-  await dbConnect();
+  const client = await clientPromise;
+  const db = client.db('washify');
+  const collection = db.collection('customers');
 
-  const { method } = req;
-
-  switch (method) {
-    case 'GET':
-      try {
-        const customers = await Customer.find({}).sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data: customers });
-      } catch (error) {
-        console.error('GET customers error:', error);
-        res.status(400).json({ success: false, error: error.message });
-      }
-      break;
-
-    case 'POST':
-      try {
-        const customer = await Customer.create(req.body);
-        res.status(201).json({ success: true, data: customer });
-      } catch (error) {
-        console.error('POST customer error:', error);
-        res.status(400).json({ success: false, error: error.message });
-      }
-      break;
-
-    default:
-      res.status(405).json({ success: false, error: 'Method not allowed' });
-      break;
+  if (req.method === 'GET') {
+    const customers = await collection.find({}).toArray();
+    res.json({ success: true, data: customers });
+  } else if (req.method === 'POST') {
+    const newCustomer = req.body;
+    const result = await collection.insertOne(newCustomer);
+    res.json({ success: true, data: result });
+  } else if (req.method === 'DELETE') {
+    const { mobile, address } = req.body;
+    const result = await collection.deleteOne({ mobile, address });
+    res.json({ success: true, data: result });
+  } else {
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 }

@@ -1,38 +1,28 @@
-// pages/api/appointments.js
-import dbConnect from '../../src/mongodb';
-import Appointment from '../../src/models/Appointment';
+import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
-  await dbConnect();
+  const client = await clientPromise;
+  const db = client.db('washify');
+  const collection = db.collection('appointments');
 
-  const { method } = req;
-
-  switch (method) {
-    case 'GET':
-      try {
-        const appointments = await Appointment.find({})
-          .populate('customerId', 'name mobile address')
-          .populate('washerId', 'name mobile assignedArea')
-          .sort({ scheduledDate: -1 });
-        res.status(200).json({ success: true, data: appointments });
-      } catch (error) {
-        console.error('GET appointments error:', error);
-        res.status(400).json({ success: false, error: error.message });
-      }
-      break;
-
-    case 'POST':
-      try {
-        const appointment = await Appointment.create(req.body);
-        res.status(201).json({ success: true, data: appointment });
-      } catch (error) {
-        console.error('POST appointment error:', error);
-        res.status(400).json({ success: false, error: error.message });
-      }
-      break;
-
-    default:
-      res.status(405).json({ success: false, error: 'Method not allowed' });
-      break;
+  if (req.method === 'GET') {
+    const appointments = await collection.find({}).toArray();
+    res.json({ success: true, data: appointments });
+  } else if (req.method === 'POST') {
+    const newAppointment = req.body;
+    const result = await collection.insertOne(newAppointment);
+    res.json({ success: true, data: result });
+  } else if (req.method === 'DELETE') {
+    const { id } = req.body;
+    const result = await collection.deleteOne({ id });
+    res.json({ success: true, data: result });
+  } else if (req.method === 'PUT') {
+    const updatedAppointment = req.body;
+    const filter = { id: updatedAppointment.id };
+    const updateDoc = { $set: updatedAppointment };
+    const result = await collection.updateOne(filter, updateDoc);
+    res.json({ success: true, data: result });
+  } else {
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 }
