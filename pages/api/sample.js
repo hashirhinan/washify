@@ -1,7 +1,102 @@
-export default function handler(req, res) {
-  if (req.method === 'POST') {
-    res.status(200).json({ message: 'Sample data added', success: true });
-  } else {
-    res.status(405).json({ message: 'Method not allowed' });
+import { MongoClient } from 'mongodb';
+
+const uri = process.env.MONGODB_URI;
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  let client;
+  try {
+    client = new MongoClient(uri);
+    await client.connect();
+    
+    const db = client.db('washify');
+    
+    // Sample data
+    const sampleCustomers = [
+      {
+        name: 'Rajesh Kumar',
+        email: 'rajesh@example.com',
+        phone: '9876543210',
+        address: 'Apartment 101, Sahakarnagar, Bangalore',
+        subscriptionPlan: 'monthly',
+        createdAt: new Date()
+      },
+      {
+        name: 'Priya Singh', 
+        email: 'priya@example.com',
+        phone: '9876543211',
+        address: 'Apartment 202, Sahakarnagar, Bangalore',
+        subscriptionPlan: 'quarterly',
+        createdAt: new Date()
+      }
+    ];
+
+    const sampleWashers = [
+      {
+        name: 'Ravi Washer',
+        email: 'ravi@washify.com',
+        phone: '9876543220',
+        rating: 4.5,
+        isAvailable: true,
+        experience: '2 years',
+        createdAt: new Date()
+      },
+      {
+        name: 'Arjun Cleaner',
+        email: 'arjun@washify.com', 
+        phone: '9876543221',
+        rating: 4.8,
+        isAvailable: true,
+        experience: '3 years',
+        createdAt: new Date()
+      }
+    ];
+
+    const sampleAppointments = [
+      {
+        customerName: 'Rajesh Kumar',
+        washerName: 'Ravi Washer',
+        date: new Date(Date.now() + 86400000), // Tomorrow
+        time: '10:00 AM',
+        status: 'scheduled',
+        serviceType: 'Basic Car Wash',
+        location: 'Sahakarnagar, Bangalore',
+        createdAt: new Date()
+      },
+      {
+        customerName: 'Priya Singh',
+        washerName: 'Arjun Cleaner', 
+        date: new Date(Date.now() + 172800000), // Day after tomorrow
+        time: '2:00 PM',
+        status: 'scheduled',
+        serviceType: 'Premium Car Wash',
+        location: 'Sahakarnagar, Bangalore',
+        createdAt: new Date()
+      }
+    ];
+
+    // Insert sample data
+    await db.collection('customers').insertMany(sampleCustomers);
+    await db.collection('washers').insertMany(sampleWashers);  
+    await db.collection('appointments').insertMany(sampleAppointments);
+
+    res.status(200).json({
+      success: true,
+      message: 'Sample data added successfully!'
+    });
+
+  } catch (error) {
+    console.error('Error adding sample data:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 }
