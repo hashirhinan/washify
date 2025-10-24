@@ -6,15 +6,11 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
   let client;
   try {
     client = new MongoClient(uri);
     await client.connect();
-    
     const db = client.db('washify');
-    
-    // Sample data
     const sampleCustomers = [
       {
         name: 'Rajesh Kumar',
@@ -25,7 +21,7 @@ export default async function handler(req, res) {
         createdAt: new Date()
       },
       {
-        name: 'Priya Singh', 
+        name: 'Priya Singh',
         email: 'priya@example.com',
         phone: '9876543211',
         address: 'Apartment 202, Sahakarnagar, Bangalore',
@@ -33,7 +29,6 @@ export default async function handler(req, res) {
         createdAt: new Date()
       }
     ];
-
     const sampleWashers = [
       {
         name: 'Ravi Washer',
@@ -46,7 +41,7 @@ export default async function handler(req, res) {
       },
       {
         name: 'Arjun Cleaner',
-        email: 'arjun@washify.com', 
+        email: 'arjun@washify.com',
         phone: '9876543221',
         rating: 4.8,
         isAvailable: true,
@@ -54,12 +49,11 @@ export default async function handler(req, res) {
         createdAt: new Date()
       }
     ];
-
     const sampleAppointments = [
       {
         customerName: 'Rajesh Kumar',
         washerName: 'Ravi Washer',
-        date: new Date(Date.now() + 86400000), // Tomorrow
+        date: new Date(Date.now() + 86400000),
         time: '10:00 AM',
         status: 'scheduled',
         serviceType: 'Basic Car Wash',
@@ -68,8 +62,8 @@ export default async function handler(req, res) {
       },
       {
         customerName: 'Priya Singh',
-        washerName: 'Arjun Cleaner', 
-        date: new Date(Date.now() + 172800000), // Day after tomorrow
+        washerName: 'Arjun Cleaner',
+        date: new Date(Date.now() + 172800000),
         time: '2:00 PM',
         status: 'scheduled',
         serviceType: 'Premium Car Wash',
@@ -77,26 +71,13 @@ export default async function handler(req, res) {
         createdAt: new Date()
       }
     ];
-
-    // Insert sample data
     await db.collection('customers').insertMany(sampleCustomers);
-    await db.collection('washers').insertMany(sampleWashers);  
+    await db.collection('washers').insertMany(sampleWashers);
     await db.collection('appointments').insertMany(sampleAppointments);
-
-    res.status(200).json({
-      success: true,
-      message: 'Sample data added successfully!'
-    });
-
+    res.status(200).json({ success: true, message: 'Sample data added successfully!' });
   } catch (error) {
-    console.error('Error adding sample data:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
   } finally {
-    if (client) {
-      await client.close();
-    }
+    if (client) await client.close();
   }
 }
